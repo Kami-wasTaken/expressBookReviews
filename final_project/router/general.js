@@ -5,6 +5,11 @@ let users = require("./auth_users.js").users;
 const public_users = express.Router();
 
 
+
+const getbooks = new Promise((res,rej)=>{
+
+})
+
 public_users.post("/register", (req,res) => {
     let username = req.body.username
     let password = req.body.password
@@ -18,65 +23,106 @@ public_users.post("/register", (req,res) => {
       }
       
   }
-  res.send("username or password not provided")
+  
 });
 
 // Get the book list available in the shop
+
 public_users.get('/',function (req, res) {
-  res.send(JSON.stringify(books,null,4))
-  return res.status(300).json({message: "Rerieved Books"});
+    const getbooks = new Promise((resolve,reject)=>{
+        resolve(books)
+    })
+
+    getbooks.then(books=>{
+        return res.status(300).json({message: books});
+    }).catch(error => {
+        res.status(500).json({ error: 'An error occurred.' });
+    })
+    
 });
 
 // Get book details based on ISBN
 public_users.get('/isbn/:isbn',function (req, res) {
-  const isbn = req.params.isbn
-  if(isbn){
-      res.send(books[isbn])
-      return res.status(300).json({message: "Rerieved Books"});
-  }
-  else{
-      res.send("ISBN provided is invalid")
-      return res.status(422).json({message: "Invalid ISBN"});
-  }
+    const getbooks = new Promise((resolve, reject)=>{
+        const isbn = req.params.isbn
+        const err = "isbn not provided"
+        if(isbn){
+            book = books[isbn]
+            resolve(book)
+            
+        }
+        else{
+            reject(err)
+        }
+    })
+
+    getbooks.then(
+        (books) => {
+            return res.status(300).json({message: book});
+        },
+        (err) => {
+            return res.status(422).json({message: err});
+        }
+    )
   
  });
   
 // Get book details based on author
 public_users.get('/author/:author',function (req, res) {
-    let bookswithAuthor = []
-    if(req.params.author){
-        for( let i = 1; i < Object.keys(books).length ; i++){
-            if(books[i]["author"] === req.params.author){
-                bookswithAuthor.push(books[i])
+    const getbooks = new Promise((resolve, reject)=>{
+        let bookswithAuthor = []
+        err = "Invalid Author"
+        if(req.params.author){
+            for( let i = 1; i < Object.keys(books).length ; i++){
+                if(books[i]["author"] === req.params.author){
+                    bookswithAuthor.push(books[i])
+                }
             }
+            resolve(bookswithAuthor)
         }
-        res.send(bookswithAuthor)
-        return res.status(300).json({message: "Retrieved Books"});
-    }
-    else{
-        res.send("Invalid Author Provided")
-        return res.status(422).json({message: "Invalid Author"});
-    }
+        else{
+            reject(err)
+        }
+    })
+
+    getbooks.then((bookswithAuthor)=>{
+        return res.status(300).json({message: bookswithAuthor});
+    },
+    (err)=>{
+        return res.status(422).json({message: err});
+    })
     
   });
 
 // Get all books based on title
 public_users.get('/title/:title',function (req, res) {
   //Write your code here
-  let bookswithtitle = []
-  if(req.params.title){
-      for( let i = 1; i < Object.keys(books).length ; i++){
-          if(books[i]["title"] === req.params.title){
-              bookswithtitle.push(books[i])
-          }
-      }
-      res.send(bookswithtitle)
-      return res.status(300).json({message: "Retrieved Books"});
-  }
-  else{
-      res.send("Invalid Title Provided")
-      return res.status(422).json({message: "Invalid Title"});
-  }
+  const getbook = new Promise((resolve, reject)=>{
+    let err = "invalid title"
+    let bookswithtitle = []
+    if(req.params.title){
+        for( let i = 1; i < Object.keys(books).length ; i++){
+            if(books[i]["title"] === req.params.title){
+                bookswithtitle.push(books[i])
+            }
+        }
+        resolve(bookswithtitle)
+        
+    }
+    else{
+        reject(err)
+    }
+
+  })
+
+  getbook.then(
+    (bookswithtitle)=>{
+        return res.status(300).json({message: bookswithtitle});
+    },
+    (err)=>{
+        return res.status(422).json({message: err});
+    })
+
 });
 
 //  Get book review
